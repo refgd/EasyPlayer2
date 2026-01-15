@@ -2,10 +2,14 @@ package loli.ball.easyplayer2
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
@@ -58,7 +62,7 @@ fun EasyPlayerStateSync(vm: ControlViewModel) {
     OnLifecycleEvent { _, event ->
         when (event) {
             Lifecycle.Event.ON_RESUME -> ui.isSystemBarsVisible = !vm.isFullScreen
-            Lifecycle.Event.ON_PAUSE -> vm.exoPlayer.pause()
+            Lifecycle.Event.ON_PAUSE -> if(!vm.isInPip) vm.exoPlayer.pause()
             else -> Unit
         }
     }

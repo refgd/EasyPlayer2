@@ -20,9 +20,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.C.TIME_UNSET
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import loli.ball.easyplayer2.surface.SurfacePlayerRender
@@ -42,7 +45,10 @@ class ControlViewModel(
     val isPadMode: Boolean = false,
     val scene: String? = null,
     val render: EasyPlayerRender,
+    private val pipState: StateFlow<Boolean> = MutableStateFlow(false)
 ) : ViewModel(), Player.Listener {
+
+    val isInPip: Boolean get() = pipState.value
 
     companion object {
         const val CONTROL_HIDE_DELAY = 4000L
@@ -108,6 +114,7 @@ class ControlViewModel(
 
     @Deprecated("use render.getViewOrNull")
     val surfaceView: EasySurfaceView
+        @UnstableApi
         get() = render.getViewOrNull() as? EasySurfaceView ?: throw IllegalStateException("use render.getViewOrNull")
 
     var fullScreenVertically = false
@@ -500,6 +507,7 @@ class ControlViewModelFactory(
     private val isPadMode: Boolean = false,
     private val scene: String? = null,
     private val render: EasyPlayerRender = SurfacePlayerRender(),
+    private val pipState: StateFlow<Boolean>,
 ) : ViewModelProvider.Factory {
 
     companion object {
@@ -509,6 +517,7 @@ class ControlViewModelFactory(
             isPadMode: Boolean = false,
             scene: String? = null,
             render: EasyPlayerRender = SurfacePlayerRender(),
+            pipState: StateFlow<Boolean> = MutableStateFlow(false),
         ): ControlViewModel {
             return viewModel<ControlViewModel>(
                 factory = ControlViewModelFactory(
@@ -516,7 +525,8 @@ class ControlViewModelFactory(
                     exoPlayer,
                     isPadMode = isPadMode,
                     scene,
-                    render
+                    render,
+                    pipState
                 )
             )
         }
@@ -526,7 +536,7 @@ class ControlViewModelFactory(
     @SuppressWarnings("unchecked")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ControlViewModel::class.java))
-            return ControlViewModel(context, exoPlayer, isPadMode, scene, render) as T
+            return ControlViewModel(context, exoPlayer, isPadMode, scene, render, pipState) as T
         throw RuntimeException("unknown class :" + modelClass.name)
     }
 
